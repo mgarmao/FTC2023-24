@@ -10,6 +10,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 @TeleOp(name="Mecanum Drive", group="Iterative Opmode")
 public class Mecanum extends OpMode {
 
+    private double magicNumber = 0.55; //number for quick turn
+    private boolean opModeActive = false;
     // declare and initialize four DcMotors.
     private DcMotor front_left  = null;
     private DcMotor front_right = null;
@@ -28,7 +30,7 @@ public class Mecanum extends OpMode {
     int elevatorZero=0;
     @Override
     public void init() {
-
+        opModeActive = true;
         // Name strings must match up with the config on the Robot Controller
         // app.
         front_left   = hardwareMap.get(DcMotor.class, "motor0");
@@ -67,9 +69,60 @@ public class Mecanum extends OpMode {
             twist  = gamepad2.left_stick_x;
         }
         else{
-            drive = gamepad2.right_stick_x*0.5;
-            strafe  = gamepad2.left_stick_y*0.5;
-            twist  = gamepad2.left_stick_x*0.5;
+            drive = gamepad2.right_stick_x*0.4;
+            strafe  = gamepad2.left_stick_y*0.4;
+            twist  = gamepad2.left_stick_x*0.4; 
+        }
+
+        // 180 for parking
+        if(gamepad2.dpad_up) {
+            double startTime = getRuntime();
+
+            while(opModeActive && (getRuntime() - startTime) < 1.0) {
+                // Consider the following int changes:
+                front_left.setPower(0);   // -1
+                front_right.setPower(1.0);  // -1
+                back_left.setPower(1.0);   // -1
+                back_right.setPower(1.0);  //  1  at least any of one of these values postitive for testing
+            }
+            front_left.setPower(0);
+            front_right.setPower(0);
+            back_left.setPower(0);
+            back_right.setPower(0);
+        }
+
+        // 90 right
+        if(gamepad2.dpad_right) {
+            double startTime = getRuntime();
+
+            while(opModeActive && (getRuntime() - startTime) < 1.0) {
+                // Consider the following int changes:
+                front_left.setPower(-1*magicNumber);   // -1
+                front_right.setPower(0);  // -1
+                back_left.setPower(-1*magicNumber);   // -1
+                back_right.setPower(-1*magicNumber);  //  1  at least any of one of these values postitive for testing
+            }
+            front_left.setPower(0);
+            front_right.setPower(0);
+            back_left.setPower(0);
+            back_right.setPower(0);
+        }
+
+        // 90 left
+        if(gamepad2.dpad_left) {
+            double startTime = getRuntime();
+
+            while(opModeActive && (getRuntime() - startTime) < 1.0) {
+                // Consider the following int changes:
+                front_left.setPower(0);   // -1
+                front_right.setPower(magicNumber);  // -1
+                back_left.setPower(magicNumber);   // -1
+                back_right.setPower(magicNumber);  //  1  at least any of one of these values postitive for testing
+            }
+            front_left.setPower(0);
+            front_right.setPower(0);
+            back_left.setPower(0);
+            back_right.setPower(0);
         }
 
         //Elbow - motor xy
@@ -85,8 +138,8 @@ public class Mecanum extends OpMode {
         }
 
         //Rotator - motor
-        if(gamepad1.left_stick_x>0.05||gamepad1.left_stick_x<-0.05){
-            rotator.setPower(gamepad1.left_stick_x*0.4);
+        if(gamepad1.left_stick_y>0.05||gamepad1.left_stick_y<-0.05){
+            rotator.setPower(gamepad1.left_stick_y*0.4);
         }
         else{
             rotator.setPower(0);
@@ -107,12 +160,11 @@ public class Mecanum extends OpMode {
 
         //Shooter -servo up- up-dpad
         if(gamepad1.dpad_up){
-            shooter.setPosition(0.23 );
+            shooter.setPosition(0.23);
         }
         else{
             shooter.setPosition(0);
         }
-
 
 
         // You may need to multiply some of these by -1 to invert direction of
